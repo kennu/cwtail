@@ -1,0 +1,28 @@
+{
+  "name": "cwtail",
+  "version": "0.1.0",
+  "description": "CloudWatch Logs Tail",
+  "main": "index.js",
+  "bin": {
+    "cwtail": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennu/cwtail.git"
+  },
+  "author": "Kenneth Falck <kennu@iki.fi>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kennu/cwtail/issues"
+  },
+  "homepage": "https://github.com/kennu/cwtail#readme",
+  "dependencies": {
+    "aws-sdk": "^2.2.21",
+    "bluebird": "^3.0.6",
+    "ini": "^1.3.4",
+    "node-getopt": "^0.2.3"
+  }
+}
