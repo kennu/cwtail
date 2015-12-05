@@ -1,6 +1,6 @@
 {
   "name": "cwtail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CloudWatch Logs Tail",
   "main": "index.js",
   "bin": {

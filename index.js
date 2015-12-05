@@ -13,7 +13,6 @@
 var fs = require('fs');
 var path = require('path');
 var ini = require('ini');
-var AWS = require('aws-sdk');
 var Promise = require('bluebird');
 var Getopt = require('node-getopt');
 
@@ -161,6 +160,7 @@ function main(argv) {
     if (arg.options.profile) {
       process.env.AWS_PROFILE = arg.options.profile;
     }
+    var AWS = require('aws-sdk');
     try {
       var iniFile = fs.readFileSync(path.join(process.env.HOME, '.aws', 'config'), 'utf8');
       var iniData = ini.decode(iniFile);
