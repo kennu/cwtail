@@ -162,7 +162,7 @@ function main(argv) {
     }
     var AWS = require('aws-sdk');
     try {
-      var iniFile = fs.readFileSync(path.join(process.env.HOME, '.aws', 'config'), 'utf8');
+      var iniFile = fs.readFileSync(path.join(process.env.HOME || process.env.HOMEPATH, '.aws', 'config'), 'utf8');
       var iniData = ini.decode(iniFile);
       var section = iniData[process.env.AWS_PROFILE ? 'profile ' + process.env.AWS_PROFILE : 'default'];
       if (section.region) {
