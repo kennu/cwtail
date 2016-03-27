@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * CloudWatch Logs Tail
- * Copyright (C) Kenneth Falck 2015
+ * Copyright (C) Kenneth Falck 2015-2016
  * License: MIT
  *
  * Installation:
@@ -109,13 +109,13 @@ function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTime
     var newTimestamps = {};
     records.map(function (record) {
       // Have we already seen this record?
-      var seenTimestamp = seenStreamTimestamps[record.streamName];
+      var seenTimestamp = seenStreamTimestamps[record.logStream];
       if (seenTimestamp && record.timestamp <= seenTimestamp) {
         // Yes, skip it
         return;
       }
-      if (!newTimestamps[record.streamName] || record.timestamp > newTimestamps[record.streamName]) {
-        newTimestamps[record.streamName] = record.timestamp;
+      if (!newTimestamps[record.logStream] || record.timestamp > newTimestamps[record.logStream]) {
+        newTimestamps[record.logStream] = record.timestamp;
       }
       if (showStreams) {
         if (record.logStream != prevStream) {
@@ -151,7 +151,7 @@ function main(argv) {
       ['h', 'help', 'Show this help'],
       ['v', 'version', 'Show cwtail version']
     ]);
-    opt.setHelp("CloudWatch Logs Tail (C) Kenneth Falck <kennu@iki.fi> 2015\n\nUsage: cwtail [options] <log group>\n\n[[OPTIONS]]\n");
+    opt.setHelp("CloudWatch Logs Tail (C) Kenneth Falck <kennu@iki.fi> 2015-2016\n\nUsage: cwtail [options] <log group>\n\n[[OPTIONS]]\n");
     var arg = opt.bindHelp().parse(argv);
     if (arg.options.version) {
       console.log('cwtail ' + JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'))).version);
@@ -195,7 +195,8 @@ function main(argv) {
       }
       return readNext();
     } else {
-      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time);
+      var seenStreamTimestamps = {};
+      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps);
     }
   })
   .then(function () {
@@ -208,7 +209,7 @@ function main(argv) {
     } else if (err == 1) {
       process.exit(1);
     } else {
-      console.error(err);
+      console.error(err.stack || err);
       process.exit(1);
     }
   });
