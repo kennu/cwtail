@@ -1,5 +1,5 @@
 # CloudWatch Logs Tail
-(C) Kenneth Falck <<kennu@iki.fi>> 2015
+(C) Kenneth Falck <<kennu@iki.fi>> 2015-2016
 
 ## Overview
 
