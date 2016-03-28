@@ -173,6 +173,12 @@ function main(argv) {
       // Ini file not found, ignore
       console.error(err);
     }
+    if (process.env.https_proxy) {
+      var proxy = require('proxy-agent');
+      AWS.config.update({
+          httpOptions: { agent: proxy(process.env.https_proxy) }
+      })
+    }
     var logs = new AWS.CloudWatchLogs();
     Promise.promisifyAll(logs);
     if (!arg.options.list && !arg.argv.length) {
