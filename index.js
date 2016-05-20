@@ -15,6 +15,7 @@ var path = require('path');
 var ini = require('ini');
 var Promise = require('bluebird');
 var Getopt = require('node-getopt');
+var os = require('os');
 
 var DEFAULT_NUM_RECORDS = 30; // Default number of records to tail
 var FOLLOW_INTERVAL = 5000; // How often to read more
@@ -52,7 +53,7 @@ function getStreamEvents(logs, logGroup, logStream) {
 /**
  * Tail specified log group
  */
-function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTimestamps) {
+function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTimestamps, eol) {
   return logs.describeLogStreamsAsync({
     logGroupName: logGroup,
     descending: true,
@@ -129,6 +130,9 @@ function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTime
         process.stdout.write('[' + new Date(record.timestamp) + '] ')
       }
       process.stdout.write(record.message);
+      if (eol) {
+        process.stdout.write(os.EOL);
+      }
     });
     Object.keys(newTimestamps).map(function (key) {
       if (!seenStreamTimestamps[key] || newTimestamps[key] > seenStreamTimestamps[key]) {
@@ -146,6 +150,7 @@ function main(argv) {
       ['n', 'num=ARG', 'Number of log records to show'],
       ['s', 'streams', 'Show log stream names'],
       ['t', 'time', 'Show timestamps in log records'],
+      ['e', 'eol', 'Append platform end-of-line to log records'],
       ['l', 'list', 'List available log groups'],
       ['p', 'profile=ARG', 'Select AWS profile'],
       ['h', 'help', 'Show this help'],
@@ -191,7 +196,7 @@ function main(argv) {
     } else if (arg.options.follow) {
       var seenStreamTimestamps = {};
       function readNext() {
-        return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps)
+        return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol)
         .then(function () {
           return new Promise(function (resolve, reject) { setTimeout(resolve, FOLLOW_INTERVAL)});
         })
@@ -202,7 +207,7 @@ function main(argv) {
       return readNext();
     } else {
       var seenStreamTimestamps = {};
-      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps);
+      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol);
     }
   })
   .then(function () {
