@@ -45,6 +45,11 @@ Use the -n option to specify how many log records should be initially shown:
 
     cwtail -n 1 -f /aws/lambda/MyFunction
 
+Records added by the CloudWatch Logs Agent may not end with an end-of-line sequence.
+Use the -e option to print the platform's end-of-line sequence after each log record:
+
+    cwtail -e /var/log/syslog
+
 ## Configuration
 
 The easiest way to configure cwtail is to install AWS CLI (https://aws.amazon.com/cli/) and configure it. The configuration is stored in ~/.aws and will be automatically used.
