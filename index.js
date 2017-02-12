@@ -166,17 +166,21 @@ function main(argv) {
       process.env.AWS_PROFILE = arg.options.profile;
     }
     var AWS = require('aws-sdk');
-    try {
-      var iniFile = fs.readFileSync(path.join(process.env.HOME || process.env.HOMEPATH, '.aws', 'config'), 'utf8');
-      var iniData = ini.decode(iniFile);
-      var section = iniData[process.env.AWS_PROFILE ? 'profile ' + process.env.AWS_PROFILE : 'default'];
-      if (section.region) {
-        // Use region from config
-        AWS.config.update({region: section.region});
+    if (process.env.AWS_REGION) {
+      AWS.config.update({ region: process.env.AWS_REGION });
+    } else {
+      try {
+        var iniFile = fs.readFileSync(path.join(process.env.HOME || process.env.HOMEPATH, '.aws', 'config'), 'utf8');
+        var iniData = ini.decode(iniFile);
+        var section = iniData[process.env.AWS_PROFILE ? 'profile ' + process.env.AWS_PROFILE : 'default'];
+        if (section.region) {
+          // Use region from config
+          AWS.config.update({region: section.region});
+        }
+      } catch (err) {
+        // Ini file not found, ignore
+        console.error(err);
       }
-    } catch (err) {
-      // Ini file not found, ignore
-      console.error(err);
     }
     if (process.env.https_proxy) {
       var proxy = require('proxy-agent');
