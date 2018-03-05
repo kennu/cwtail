@@ -53,7 +53,7 @@ function getStreamEvents(logs, logGroup, logStream) {
 /**
  * Tail specified log group
  */
-function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTimestamps, eol) {
+function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTimestamps, eol, filter) {
   return logs.describeLogStreamsAsync({
     logGroupName: logGroup,
     descending: true,
@@ -64,7 +64,7 @@ function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTime
     if (result && result.logStreams) {
       var latestStreams = [];
       result.logStreams.map(function (logStream) {
-        if (logStream.lastEventTimestamp) {
+        if (logStream.lastEventTimestamp && (!filter || logStream.logStreamName.match(new RegExp(filter)))) {
           latestStreams.push(logStream.logStreamName);
         }
       });
@@ -149,9 +149,11 @@ function main(argv) {
       ['f', 'follow', 'Follow the log (default is to exit)'],
       ['n', 'num=ARG', 'Number of log records to show'],
       ['s', 'streams', 'Show log stream names'],
+      ['i', 'filter=ARG', 'Filter log stream names (regex)'],
       ['t', 'time', 'Show timestamps in log records'],
       ['e', 'eol', 'Append platform end-of-line to log records'],
       ['l', 'list', 'List available log groups'],
+      ['r', 'region=ARG', 'Use specific AWS region'],
       ['p', 'profile=ARG', 'Select AWS profile'],
       ['h', 'help', 'Show this help'],
       ['v', 'version', 'Show cwtail version']
@@ -164,6 +166,9 @@ function main(argv) {
     }
     if (arg.options.profile) {
       process.env.AWS_PROFILE = arg.options.profile;
+    }
+    if (arg.options.region) {
+      process.env.AWS_REGION = arg.options.region;
     }
     var AWS = require('aws-sdk');
     if (process.env.AWS_REGION) {
@@ -200,7 +205,7 @@ function main(argv) {
     } else if (arg.options.follow) {
       var seenStreamTimestamps = {};
       function readNext() {
-        return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol)
+        return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol, arg.options.filter)
         .then(function () {
           return new Promise(function (resolve, reject) { setTimeout(resolve, FOLLOW_INTERVAL)});
         })
@@ -211,7 +216,7 @@ function main(argv) {
       return readNext();
     } else {
       var seenStreamTimestamps = {};
-      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol);
+      return tail(logs, arg.argv[0], opt.num || DEFAULT_NUM_RECORDS, arg.options.time, arg.options.streams, seenStreamTimestamps, arg.options.eol, arg.options.filter);
     }
   })
   .then(function () {
