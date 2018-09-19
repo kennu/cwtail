@@ -24,9 +24,10 @@ var FOLLOW_INTERVAL = 5000; // How often to read more
  * List available log groups
  */
 function list(logs, nextToken) {
-  return logs.describeLogGroupsAsync({
+  return logs.describeLogGroups({
     nextToken: nextToken
   })
+  .promise()
   .then(function (result) {
     if (result && result.logGroups) {
       result.logGroups.map(function (group) {
@@ -41,10 +42,11 @@ function list(logs, nextToken) {
 }
 
 function getStreamEvents(logs, logGroup, logStream) {
-  return logs.getLogEventsAsync({
+  return logs.getLogEvents({
     logGroupName: logGroup,
     logStreamName: logStream
   })
+  .promise()
   .then(function (result) {
     return (result && result.events) || [];
   });
@@ -54,12 +56,13 @@ function getStreamEvents(logs, logGroup, logStream) {
  * Tail specified log group
  */
 function tail(logs, logGroup, numRecords, showTimes, showStreams, seenStreamTimestamps, eol) {
-  return logs.describeLogStreamsAsync({
+  return logs.describeLogStreams({
     logGroupName: logGroup,
     descending: true,
     limit: 10,
     orderBy: 'LastEventTime'
   })
+  .promise()
   .then(function (result) {
     if (result && result.logStreams) {
       var latestStreams = [];
@@ -189,7 +192,6 @@ function main(argv) {
       })
     }
     var logs = new AWS.CloudWatchLogs();
-    Promise.promisifyAll(logs);
     if (!arg.options.list && !arg.argv.length) {
       // Need log group name
       opt.showHelp();
