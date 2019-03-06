@@ -159,7 +159,7 @@ function main(argv) {
       ['h', 'help', 'Show this help'],
       ['v', 'version', 'Show cwtail version']
     ]);
-    opt.setHelp("CloudWatch Logs Tail (C) Kenneth Falck <kennu@iki.fi> 2015-2016\n\nUsage: cwtail [options] <log group>\n\n[[OPTIONS]]\n");
+    opt.setHelp("CloudWatch Logs Tail (C) Kenneth Falck <kennu@iki.fi> 2015-2019\n\nUsage: cwtail [options] <log group>\n\n[[OPTIONS]]\n");
     var arg = opt.bindHelp().parse(argv);
     if (arg.options.version) {
       console.log('cwtail ' + JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'))).version);
