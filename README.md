@@ -1,5 +1,5 @@
 # CloudWatch Logs Tail
-(C) Kenneth Falck <<kennu@iki.fi>> 2015-2017, licensed under the MIT license
+(C) Kenneth Falck <<kennu@iki.fi>> 2015-2019, licensed under the MIT license
 
 ## Overview
 

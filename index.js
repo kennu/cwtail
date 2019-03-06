@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * CloudWatch Logs Tail
- * Copyright (C) Kenneth Falck 2015-2016
+ * Copyright (C) Kenneth Falck 2015-2019
  * License: MIT
  *
  * Installation:
