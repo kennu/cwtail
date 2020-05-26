@@ -29,6 +29,10 @@
     "aws-sdk": "2.x",
     "yargs": "15.x"
   },
+  "peerDependencies": {
+    "bunyan": "1.x",
+    "bunyan-prettystream": "0.1.x"
+  },
   "devDependencies": {
     "chai": "*",
     "eslint": "*",
