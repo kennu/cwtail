@@ -79,7 +79,6 @@ const _exitUponComplete = emitter => {
 };
 
 function main(argv) {
-  console.log('starting', argv);
   const logGroupName = argv._[0];
   if (!argv.list && !logGroupName) {
     // Need log group name
