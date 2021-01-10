@@ -7,13 +7,11 @@
     "cwtail": "./cli.js"
   },
   "scripts": {
-    "preinstall": "node -e 'if(/yarn\\.js$/.test(process.env.npm_execpath))throw new Error(\"This repo requires npm\")'",
-    "lintcli": "./node_modules/.bin/eslint ./cli.js",
-    "lintlib": "./node_modules/.bin/eslint ./cwtail.js",
+    "lintcli": "eslint ./cli.js",
+    "lintlib": "eslint ./cwtail.js",
     "lint": "npm run lintcli && npm run lintlib",
     "pretest": "npm run lint",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "coverage": "./node_modules/.bin/nyc npm run test"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -29,14 +27,7 @@
     "aws-sdk": "2.x",
     "yargs": "15.x"
   },
-  "peerDependencies": {
-    "bunyan": "1.x",
-    "bunyan-prettystream": "0.1.x"
-  },
   "devDependencies": {
-    "chai": "*",
-    "eslint": "*",
-    "mocha": "*",
-    "nyc": "*"
+    "eslint": "*"
   }
 }

@@ -2,6 +2,7 @@
 
 process.title = 'cwtail';
 
+const { EOL } = require('os');
 const yargs = require('yargs');
 
 const { CwTail } = require('./cwtail.js');
@@ -14,7 +15,7 @@ const { argv } = yargs
       type:       'boolean',
       default:    false,
       alias:      'f',
-      describe:   'Follow the log (default is to exit)',
+      describe:   'Follow/stream the log (default is to exit)',
     },
     num: {
       type:       'number',
@@ -32,12 +33,6 @@ const { argv } = yargs
       default:    false,
       alias:      's',
       describe:   'Show log stream names',
-    },
-    time: {
-      type:       'boolean',
-      default:    false,
-      alias:      't',
-      describe:   'Show timestamps in log records',
     },
     eol: {
       type:       'boolean',
@@ -58,20 +53,16 @@ const { argv } = yargs
     },
     region: {
       alias:      'r',
-      default:    process.env.AWS_REGION,
+      default:    process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION,
       describe:   'Select AWS region',
-    },
-    bunyan: {
-      type:       'boolean',
-      default:    false,
-      describe:   'Messages are in bunyan log format',
     },
   })
   .version()
   .help('h').alias('h', 'help');
 
+// make sure aws-sdk has correct values
 process.env.AWS_PROFILE = argv.profile;
-process.env.AWS_REGION  = argv.region;
+process.env.AWS_REGION = process.env.AWS_DEFAULT_REGION = argv.region;
 
 const _exitUponComplete = emitter => {
   emitter.once('error', err => {
@@ -84,52 +75,9 @@ const _exitUponComplete = emitter => {
 };
 
 const _defaultLogger = (argv, record) => {
-  if (argv.time) {
-    const recordTimestamp = new Date(record.timestamp).toISOString();
-    process.stdout.write(`[${recordTimestamp}] `);
-  }
   process.stdout.write(record.message);
   if (argv.eol) {
-    // i think windows notepad can handle this now so no need for os.EOL
-    process.stdout.write('\n');
-  }
-};
-
-const _createBunyanLogger = (argv, logGroupName) => {
-  try {
-    const bunyan = require('bunyan');
-    const PrettyStream = require('bunyan-prettystream');
-    const prettyStdOut = new PrettyStream();
-    prettyStdOut.pipe(process.stdout);
-    bunyan.createLogger({
-      name: logGroupName,
-      streams: [
-        {
-          level:      'debug',
-          type:       'raw',
-          stream:     prettyStdOut
-        },
-      ],
-    });
-    return record => {
-      const rawMessage = record.message;
-      try {
-        const data = JSON.parse(rawMessage); // make sure it's valid json
-        if ('v' in data && 'msg' in data) { // assume valid
-          prettyStdOut.write(rawMessage);
-        }
-        else {
-          throw new Error('invalid bunyan message');
-        }
-      }
-      catch (err) {
-        console.log(rawMessage);
-      }
-    };
-  }
-  catch (err) {
-    console.error(err);
-    process.exit(1);
+    process.stdout.write(EOL);
   }
 };
 
@@ -150,13 +98,7 @@ function main(argv) {
     });
   }
   else {
-    let logger;
-    if (argv.bunyan) {
-      logger = _createBunyanLogger(argv, logGroupName);
-    }
-    else {
-      logger = _defaultLogger.bind(null, argv);
-    }
+    const logger = _defaultLogger.bind(null, argv);
     const retriever = cwtail.createMessagesRetriever(logGroupName, {
       numRecords:     argv.num,
       follow:         argv.follow,
