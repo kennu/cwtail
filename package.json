@@ -1,6 +1,6 @@
 {
-  "name": "cwtail",
-  "version": "1.4.1",
+  "name": "@cmawhorter/cwtail",
+  "version": "1.4.1-cmawhorter01",
   "description": "CloudWatch Logs Tail",
   "main": "./cwtail.js",
   "bin": {
@@ -11,11 +11,11 @@
     "lintlib": "eslint ./cwtail.js",
     "lint": "npm run lintcli && npm run lintlib",
     "pretest": "npm run lint",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx mocha --recursive ./test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kennu/cwtail.git"
+    "url": "git://github.com/cmawhorter/cwtail.git"
   },
   "author": "Kenneth Falck <kennu@iki.fi>",
   "license": "MIT",
@@ -28,6 +28,11 @@
     "yargs": "15.x"
   },
   "devDependencies": {
-    "eslint": "^7.17.0"
-  }
+    "mocha": "*",
+    "eslint": "*"
+  },
+  "files": [
+    "cwtail.js",
+    "cli.js"
+  ]
 }

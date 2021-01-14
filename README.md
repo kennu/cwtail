@@ -1,6 +1,10 @@
 # CloudWatch Logs Tail
 (C) Kenneth Falck <<kennu@iki.fi>> 2015-2019, licensed under the MIT license
 
+## Fork note
+
+All version will be published as `1.4.1-cmawhorter##` with a trailing number instead of semver. No breaking changes will be made in this fork. 
+
 ## Overview
 
 This is a simple tool for viewing Amazon AWS CloudWatch Logs on the command line.
