@@ -9,7 +9,7 @@ on:
       - '**'
 
 env:
-  NODE_VERSION: 12
+  NODE_VERSION: 16
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -22,5 +22,5 @@ jobs:
       - run: npm --version; node --version
       - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ./.npmrc
       - run: echo "@cmawhorter:registry=https://npm.pkg.github.com" >> ./.npmrc
-      - run: npm i
+      - run: npm ci
       - run: npm test

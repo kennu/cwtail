@@ -1,21 +1,8 @@
 const { ok } = require('assert');
-const EventEmitter = require('events');
-
-const { CloudWatchLogs } = require('aws-sdk');
+const { EventEmitter } = require('events');
+const { CloudWatchLogsClient, paginateDescribeLogGroups, GetLogEventsCommand, DescribeLogStreamsCommand } = require('@aws-sdk/client-cloudwatch-logs');
 
 module.exports.CwTail = class CwTail {
-  static async invokeClient(client, method, ...args) {
-    return new Promise((resolve, reject) => {
-      client[method](...args, (err, result) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
   static async sleep(duration) {
     ok(Number.isInteger(duration) && duration > 0,
       'duration must be integer > 0');
@@ -23,66 +10,87 @@ module.exports.CwTail = class CwTail {
   }
 
   constructor() {
-    this._client = new CloudWatchLogs();
+    /**
+     * @type {CloudWatchLogsClient}
+     */
+    this._client = new CloudWatchLogsClient();
   }
 
-  async _createLogGroupsRetriever(emitter, maxPages) {
-    const { _client } = this;
+  /**
+   *
+   * @param {EventEmitter} emitter
+   * @return {Promise<void>}
+   */
+  async _createLogGroupsRetriever(emitter) {
     try {
-      let nextToken;
-      for (let i=0; i < maxPages; i++) {
-        const params = { nextToken };
-        const pageResult = await CwTail.invokeClient(_client, 'describeLogGroups', params);
+      const pager = paginateDescribeLogGroups({client: this._client});
+      for await (const pageResult of pager) {
         emitter.emit('page', pageResult);
-        nextToken = pageResult && pageResult.nextToken;
-        if (!nextToken) {
-          break;
-        }
       }
     }
     catch (err) {
       emitter.emit('error', err);
     }
+    finally {
+      emitter.emit('done');
+    }
   }
 
-  createLogGroupsRetriever(maxPages = Infinity) {
+  /**
+   *
+   * @param {number?} maxPages
+   * @returns {EventEmitter}
+   */
+  createLogGroupsRetriever(maxPages) {
     const emitter = new EventEmitter();
-    this._createLogGroupsRetriever(emitter, maxPages)
-      .then(() => emitter.emit('done'));
+    void this._createLogGroupsRetriever(emitter, maxPages);
     return emitter;
   }
 
+  /**
+   *
+   * @param {string} logGroupName
+   * @param {string} logStream
+   * @returns {Promise<import('@aws-sdk/client-cloudwatch-logs').OutputLogEvent[]>}
+   */
   async _getStreamEvents(logGroupName, logStream) {
-    const { _client } = this;
-    const params = {
+    const command = new GetLogEventsCommand({
       logGroupName,
       logStreamName: logStream,
-    };
-    const result = await CwTail.invokeClient(_client, 'getLogEvents', params);
-    return result && result.events || [];
+    });
+    const result = await this._client.send(command);
+    return result.events || [];
   }
 
+  /**
+   *
+   * @param {EventEmitter} emitter
+   * @param {string} logGroupName
+   * @param {{numRecords: number; seenStreamTimestamps: Record<string, number>; follow: boolean; pollInterval: number;}} param2
+   * @returns {Promise<void>}
+   */
   async _createMessagesRetriever(emitter, logGroupName, {
     numRecords,
     seenStreamTimestamps,
     follow,
     pollInterval,
   }) {
-    const { _client } = this;
     try {
       while (follow) {
-        const params = {
+        const command = new DescribeLogStreamsCommand({
           logGroupName,
-          descending:   true,
-          limit:        10,
-          orderBy:      'LastEventTime'
-        };
-        const logStreams = await CwTail.invokeClient(_client, 'describeLogStreams', params);
-        const latestStreams = logStreams && logStreams.logStreams
-          .map(logStream =>
-            logStream.lastEventTimestamp && logStream.logStreamName)
-          .filter(v => !!v);
-        if (!latestStreams || !latestStreams.length) {
+          descending: true,
+          limit: 10,
+          orderBy: 'LastEventTime',
+        });
+        const {logStreams = []} = await this._client.send(command);
+        const latestStreams = [];
+        for (const logStream of logStreams) {
+          if (logStream.lastEventTimestamp && logStream.logStreamName) {
+            latestStreams.push(logStream.logStreamName);
+          }
+        }
+        if (latestStreams.length === 0) {
           // No streams in group
           return;
         }
@@ -92,13 +100,15 @@ module.exports.CwTail = class CwTail {
         while (latestStreams.length > 0 && numRead < numRecords) {
           const logStream = latestStreams.shift();
           const records = await this._getStreamEvents(logGroupName, logStream);
-          records.forEach(record =>
-            record.logStream = logStream);
-          allRecords.push(...records);
-          //console.log('', records.length, 'record(s)');
-          numRead += records.length;
+          for (const record of records) {
+            record.logStream = logStream;
+            allRecords.push(record);
+            numRead += 1;
+          }
         }
+        /** @type {Record<string, number>} */
         const newTimestamps = {};
+        /** @type {undefined | string} */
         let prevStream;
         for (const record of allRecords) {
           // Have we already seen this record?
@@ -131,22 +141,31 @@ module.exports.CwTail = class CwTail {
     catch (err) {
       emitter.emit('error', err);
     }
+    finally {
+      emitter.emit('done');
+    }
   }
 
+  /**
+   *
+   * @param {string} logGroupName
+   * @param {{numRecords: number; follow?: boolean; pollInterval: number}} param1
+   * @returns {EventEmitter}
+   */
   createMessagesRetriever(logGroupName, {
     numRecords,
     follow = false,
     pollInterval,
   }) {
     const emitter = new EventEmitter();
+    /** @type {Record<string, number>} */
     const seenStreamTimestamps = {};
-    this._createMessagesRetriever(emitter, logGroupName, {
+    void this._createMessagesRetriever(emitter, logGroupName, {
       numRecords,
       seenStreamTimestamps,
       follow,
       pollInterval,
-    })
-      .then(() => emitter.emit('done'));
+    });
     return emitter;
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "@cmawhorter/cwtail",
-  "version": "1.4.1-cmawhorter01",
+  "version": "1.4.1-cmawhorter02",
   "description": "CloudWatch Logs Tail",
   "main": "./cwtail.js",
   "bin": {
@@ -11,7 +11,8 @@
     "lintlib": "eslint ./cwtail.js",
     "lint": "npm run lintcli && npm run lintlib",
     "pretest": "npm run lint",
-    "test": "npx mocha --recursive ./test"
+    "test": "npx mocha --recursive ./test",
+    "upgrade": "npx npm-check -u"
   },
   "repository": {
     "type": "git",
@@ -24,12 +25,12 @@
   },
   "homepage": "https://github.com/kennu/cwtail#readme",
   "dependencies": {
-    "aws-sdk": "2.x",
-    "yargs": "15.x"
+    "@aws-sdk/client-cloudwatch-logs": "^3.279.0",
+    "yargs": "^17.7.1"
   },
   "devDependencies": {
-    "mocha": "*",
-    "eslint": "*"
+    "eslint": "^8.34.0",
+    "mocha": "^10.2.0"
   },
   "files": [
     "cwtail.js",

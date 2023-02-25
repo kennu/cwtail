@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
   },
   parserOptions: {
-    ecmaVersion: 8,
+    ecmaVersion: 2018,
     sourceType: 'module',
   },
   extends: 'eslint:recommended',
@@ -16,6 +16,5 @@ module.exports = {
     'no-console': 0,
     'no-unused-vars': [ 'error', { 'args': 'none' } ],
     'prefer-const': [ 'error' ],
-    'indent': [ 'error', 2, { 'SwitchCase': 1 } ],
   }
 };

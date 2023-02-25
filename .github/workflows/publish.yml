@@ -1,7 +1,7 @@
 name: publish
 
 env:
-  NODE_VERSION: 12
+  NODE_VERSION: 16
 
 on:
   release:
@@ -28,7 +28,7 @@ jobs:
       - run: echo 'Publishing version - ${{env.PKG_VERSION}}'
       - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ./.npmrc
       - run: echo "@cmawhorter:registry=https://npm.pkg.github.com" >> ./.npmrc
-      - run: npm i
+      - run: npm ci
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
